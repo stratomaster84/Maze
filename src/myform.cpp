@@ -8,6 +8,10 @@ MyForm::MyForm(QWidget *parent)
     , ui(new Ui::MyUI)
 {
     ui->setupUi(this);
+    ui->width_spin->setMaximum(BIT_DEPTH);
+    ui->height_spin->setMaximum(BIT_DEPTH);
+    ui->width_spin->setMinimum(MIN_MAZE_SIZE);
+    ui->height_spin->setMinimum(MIN_MAZE_SIZE);
 
     connect(ui->radio_resolve,SIGNAL(clicked()),this,SLOT(radio_resolve_but_clicked()));
     connect(ui->radio_maze,SIGNAL(clicked()),this,SLOT(radio_maze_but_clicked()));

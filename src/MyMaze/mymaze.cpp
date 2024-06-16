@@ -8,21 +8,21 @@ MyMaze::MyMaze(int width, int height)
       solution_start({-1,-1}),
       solution_stop({-1,-1})
 {
-    right_maze_mask[0] = 0x00'00'00'01;
-    bottom_maze_mask[0] = 0x00'00'00'00;
-    for(int i=1;i<32;++i){
-        right_maze_mask[i] = 0x00'00'00'00;
-        bottom_maze_mask[i] = 0x00'00'00'00;
+    right_maze_mask[0] = 0x01;
+    bottom_maze_mask[0] = 0x00;
+    for(int i=1;i<BIT_DEPTH;++i){
+        right_maze_mask[i] = 0x00;
+        bottom_maze_mask[i] = 0x00;
     }
 }
 
 //==GET METHODS===============================================================
-const uint32_t* MyMaze::get_right_mask() const
+const MASK_TYPE* MyMaze::get_right_mask() const
 {
     return right_maze_mask;
 }
 //===========================================================================
-const uint32_t* MyMaze::get_bottom_mask() const
+const MASK_TYPE* MyMaze::get_bottom_mask() const
 {
     return bottom_maze_mask;
 }
@@ -61,7 +61,7 @@ uint8_t MyMaze::get_free_neighbours_FN(int x, int y)// -----------
     if(x<0 || x>=maze_size.x || y<0 || y>=maze_size.y)
         return 0b00'00'00'00;
     uint8_t ret_val = 0b00'00'00'00;
-    uint32_t x_mask = 0x00'00'00'01 << x;
+    MASK_TYPE x_mask = FIRST_BIT_MASK << x;
     if(x<maze_size.x-1)
         if(!(right_maze_mask[y] & x_mask))  // right(x,y)
             ret_val |= 0b00'00'01'00;       // правый свободен
@@ -87,7 +87,7 @@ uint8_t MyMaze::get_free_neighbours_Moore(int x, int y) // -----------
     if(x<0 || x>=maze_size.x || y<0 || y>=maze_size.y)
         return 0b00'00'00'00;
     uint8_t ret_val = get_free_neighbours_FN(x,y);
-    uint32_t x_mask = 0x00'00'00'01 << x;
+    MASK_TYPE x_mask = FIRST_BIT_MASK << x;
     if((ret_val & 0b00'00'00'01) && (ret_val & 0b00'00'01'00)){ // свободны верхний и правый
         if((!(right_maze_mask[y-1] & x_mask)) &&                // left(x+1,y-1) = right(x,y-1)
            (!(bottom_maze_mask[y-1] & (x_mask<<1))))            // bottom(x+1,y-1)
@@ -117,7 +117,7 @@ void MyMaze::invert_right(int x, int y)
     if(x<0 || x>=maze_size.x-1 || y<0 || y>=maze_size.y)
         return; 
     solution.clear();
-    uint32_t x_mask = 0x00'00'00'01 << x;
+    MASK_TYPE x_mask = FIRST_BIT_MASK << x;
     right_maze_mask[y] ^= x_mask;
 
     if(get_free_neighbours_FN(solution_start.x,solution_start.y) == 0b00'00'00'00)
@@ -131,7 +131,7 @@ void MyMaze::invert_bottom(int x, int y)
     if(x<0 || x>=maze_size.x || y<0 || y>=maze_size.y-1)
         return;
     solution.clear();
-    uint32_t x_mask = 0x00'00'00'01 << x;
+    MASK_TYPE x_mask = FIRST_BIT_MASK << x;
     bottom_maze_mask[y] ^= x_mask;
 
     if(get_free_neighbours_FN(solution_start.x,solution_start.y) == 0b00'00'00'00)
@@ -142,7 +142,7 @@ void MyMaze::invert_bottom(int x, int y)
 //===========================================================================
 void MyMaze::resize_maze(int width, int height)
 {
-    if(width<2 || width>32 || height<2 || height>32)
+    if(width<MIN_MAZE_SIZE || width>BIT_DEPTH || height<MIN_MAZE_SIZE || height>BIT_DEPTH)
         return;
     solution.clear();
 
@@ -324,9 +324,9 @@ int MyMaze::resolve_maze()      // 0 - OK
 void MyMaze::set_random_maze()
 {
     solution.clear();
-    for(int i=0;i<32;++i){
-        right_maze_mask[i]  = (std::rand()<<24) | (std::rand()<<12) | std::rand();
-        bottom_maze_mask[i] = (std::rand()<<24) | (std::rand()<<12) | std::rand();
+    for(int i=0;i<BIT_DEPTH;++i){
+        right_maze_mask[i]  = random();
+        bottom_maze_mask[i] = random();
     }
     if(get_free_neighbours_FN(solution_start.x,solution_start.y) == 0b00'00'00'00)
         solution_start = {-1,-1};
@@ -337,9 +337,9 @@ void MyMaze::set_random_maze()
 void MyMaze::set_ellers_maze()
 {
     solution.clear();
-    for(int i=0;i<32;++i){
-        right_maze_mask[i]  = 0x00'00'00'00;
-        bottom_maze_mask[i] = 0x00'00'00'00;
+    for(int i=0;i<BIT_DEPTH;++i){
+        right_maze_mask[i]  = 0x00;
+        bottom_maze_mask[i] = 0x00;
     }
 
     std::vector<int> CURR_ROW_SETS;
@@ -358,10 +358,10 @@ void MyMaze::set_ellers_maze()
 //-------------------
 //Шаг 3: Создадим границы справа
         for(int x=0;x<maze_size.x-1;++x){
-            bool random_choise = ((uint32_t)rand() & 0x00'00'10'00);
+            bool random_choise = randBool();
             if((random_choise == true) ||
                (CURR_ROW_SETS[x] == CURR_ROW_SETS[x+1]))
-                right_maze_mask[y] |= (0x00'00'00'01<<x);
+                right_maze_mask[y] |= (FIRST_BIT_MASK<<x);
             else{
                 int SET_to_merge = CURR_ROW_SETS[x+1];
                 for(int i=0;i<maze_size.x;++i){
@@ -376,9 +376,9 @@ void MyMaze::set_ellers_maze()
 //-------------------
 //Шаг 4: Создание нижних границ
         for(int x=0;x<maze_size.x;++x){
-            bool random_choise = ((uint32_t)rand() & 0x00'00'10'00);
+            bool random_choise = randBool();
             if(random_choise == true)
-                bottom_maze_mask[y] |= (0x00'00'00'01<<x);
+                bottom_maze_mask[y] |= (FIRST_BIT_MASK<<x);
         }
 //Убедимся, что каждое множество ячеек имеет хотя бы одну ячейку без нижней границы.
 //Если это условие не будет выполнено, то мы создадим изолированные области.
@@ -386,16 +386,16 @@ void MyMaze::set_ellers_maze()
             int EXITS_FROM_SET = 0;
             for(int i=0;i<maze_size.x;++i){
                 if((CURR_ROW_SETS[i] == CURR_ROW_SETS[x]) &&
-                   (bottom_maze_mask[y] & (0x00'00'00'01<<i)) == false)
+                   (bottom_maze_mask[y] & (FIRST_BIT_MASK<<i)) == false)
                     EXITS_FROM_SET++;
             }
             if(EXITS_FROM_SET == 0)
-                bottom_maze_mask[y] &= ~(0x00'00'00'01<<x);
+                bottom_maze_mask[y] &= ~(FIRST_BIT_MASK<<x);
         }
 //-------------------
 //Шаг 5А: Создание новой строки
         for(int x=0;x<maze_size.x;++x){
-            if(bottom_maze_mask[y] & (0x00'00'00'01<<x))
+            if(bottom_maze_mask[y] & (FIRST_BIT_MASK<<x))
                 CURR_ROW_SETS[x] = 0;
         }
 //-------------------
@@ -403,9 +403,9 @@ void MyMaze::set_ellers_maze()
 //Шаг 5Б: Завершение последней строки
 //Удаляем все границы ячеек принадлежащих разным множествам
     for(int x=0;x<maze_size.x-1;++x){
-        if((right_maze_mask[maze_size.y-1] & (0x00'00'00'01<<x)) &&
+        if((right_maze_mask[maze_size.y-1] & (FIRST_BIT_MASK<<x)) &&
            (CURR_ROW_SETS[x] != CURR_ROW_SETS[x+1])){
-            right_maze_mask[maze_size.y-1] &= ~(0x00'00'00'01<<x);
+            right_maze_mask[maze_size.y-1] &= ~(FIRST_BIT_MASK<<x);
             int SET_to_merge = CURR_ROW_SETS[x+1];
             for(int i=0;i<maze_size.x;++i){
                 if(CURR_ROW_SETS[i] == SET_to_merge)
@@ -413,5 +413,33 @@ void MyMaze::set_ellers_maze()
             }
         }
     }
+}
+
+//===SPECIAL METHODS===========================================================
+MASK_TYPE MyMaze::random()
+{
+    MASK_TYPE ret_val;
+#if BIT_DEPTH>=8
+    ret_val = static_cast<MASK_TYPE>(std::rand())&0xFF;
+#endif
+#if  BIT_DEPTH>=16
+    ret_val |= (static_cast<MASK_TYPE>(std::rand())<<8)&0xFF'00;
+#endif
+#if  BIT_DEPTH>=32
+    ret_val |= ((static_cast<MASK_TYPE>(std::rand())<<24)&0xFF'00'00'00) |
+               ((static_cast<MASK_TYPE>(std::rand())<<16)&0x00'FF'00'00) ;
+#endif
+#if  BIT_DEPTH==64
+    ret_val |= ((static_cast<MASK_TYPE>(std::rand())<<56)&0xFF'00'00'00'00'00'00'00) |
+               ((static_cast<MASK_TYPE>(std::rand())<<48)&0x00'FF'00'00'00'00'00'00) |
+               ((static_cast<MASK_TYPE>(std::rand())<<40)&0x00'00'FF'00'00'00'00'00) |
+               ((static_cast<MASK_TYPE>(std::rand())<<32)&0x00'00'00'FF'00'00'00'00) ;
+#endif
+    return ret_val;
+}
+//===========================================================================
+bool MyMaze::randBool()
+{
+    return std::rand()&0x00'80;
 }
 //===========================================================================

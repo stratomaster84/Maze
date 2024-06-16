@@ -6,7 +6,7 @@
 //===========================================================================
 MyFrame::MyFrame(QWidget *parent)
     : QFrame(parent),
-      maze(2,2),
+      maze(MIN_MAZE_SIZE,MIN_MAZE_SIZE),
       modify_mode(false)
 {
 
@@ -50,7 +50,7 @@ void MyFrame::drawMaze(){
 //------
     _painter.setPen(QPen(MAZE_BORDER_COLOR,MAZE_BORDER_WIDTH,Qt::SolidLine));
     for(int x = 0; x < maze.get_size().x; ++x){
-        uint32_t x_mask = 0x00'00'00'01 << x;   // маска для поиска по x
+        MASK_TYPE x_mask = MyMaze::FIRST_BIT_MASK << x;   // маска для поиска по x
         for(int y = 0; y < maze.get_size().y; ++y){
             if((x != (maze.get_size().x-1)) && (maze.get_right_mask()[y] & x_mask)){
                 // тогда рисуем правую линию
