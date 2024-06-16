@@ -2,7 +2,18 @@
 #define myframe_H
 
 #include <QFrame>
-//#include <QKeyEvent>
+#include "../MyMaze/mymaze.h"
+
+#define MAZE_BORDER_COLOR   Qt::black
+#define MAZE_FILL_COLOR     Qt::white
+#define BLOCKED_CELL_COLOR  Qt::black
+#define MAZE_BORDER_WIDTH   2
+
+#define SOLUTION_COLOR      Qt::red
+#define SOLUTION_WIDTH      4
+
+#define START_COLOR         Qt::green
+#define STOP_COLOR          Qt::red
 
 class MyFrame : public QFrame
 {
@@ -11,11 +22,14 @@ class MyFrame : public QFrame
 public:
     MyFrame(QWidget *parent = nullptr);
 
-protected:
-    //virtual void keyPressEvent(QKeyEvent *event);   // обработчик события нажатия кнопки Shift+Enter на клавиатуре
+    MyMaze maze;
 
-Q_SIGNALS:
-    //void signalToQuerySlot();    // сигнал для связывания нажатия кнопки на клавиатуре и обработчика запроса slotQuery
+protected:
+    virtual void paintEvent(QPaintEvent *) override;
+    void drawMaze();
+    void drawSolution();
+    void drawStart();
+    void drawStop();
 };
 
 #endif // myframe_H

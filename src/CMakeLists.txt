@@ -20,6 +20,8 @@ set(SOURCES
     myform.cpp
     MyFrame/myframe.h
     MyFrame/myframe.cpp
+    MyMaze/mymaze.h
+    MyMaze/mymaze.cpp
     myui.ui
 )
 

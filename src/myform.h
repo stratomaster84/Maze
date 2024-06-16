@@ -15,6 +15,13 @@ public:
     MyForm(QWidget *parent = nullptr);
     ~MyForm();
 
+public slots:
+    void radio_resolve_but_clicked();
+    void radio_maze_but_clicked();
+    void radio_start_stop_but_clicked();
+
+    void maze_resized();
+
 private:
     Ui::MyUI *ui;
 };

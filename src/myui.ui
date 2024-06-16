@@ -35,6 +35,9 @@
    <string>Ogar's Labirint</string>
   </property>
   <widget class="QGroupBox" name="size_box">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="geometry">
     <rect>
      <x>10</x>
@@ -133,7 +136,7 @@
    <property name="title">
     <string>Modify Mode</string>
    </property>
-   <widget class="QRadioButton" name="radio_nomod">
+   <widget class="QRadioButton" name="radio_resolve">
     <property name="geometry">
      <rect>
       <x>20</x>
@@ -143,7 +146,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>No Modify</string>
+     <string>Resolve Mode</string>
     </property>
     <property name="checked">
      <bool>true</bool>
@@ -180,6 +183,9 @@
    </widget>
   </widget>
   <widget class="QPushButton" name="random_but">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="geometry">
     <rect>
      <x>10</x>
