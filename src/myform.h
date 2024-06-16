@@ -22,9 +22,9 @@ public slots:
     void maze_resized();
     void random_maze();
     void ellers_maze();
-    void resolve_but();
 
     void allow_diagonal_step(int state);
+    void show_solution_clicked();
 
 private:
     Ui::MyUI *ui;

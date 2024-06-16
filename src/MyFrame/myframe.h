@@ -35,6 +35,9 @@ protected:
     void drawSolution();
     void drawStart();
     void drawStop();
+
+signals:
+    void dots_changed();
 };
 
 #endif // myframe_H

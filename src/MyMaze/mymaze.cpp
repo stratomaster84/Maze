@@ -115,7 +115,7 @@ uint8_t MyMaze::get_free_neighbours_Moore(int x, int y) // -----------
 void MyMaze::invert_right(int x, int y)
 {
     if(x<0 || x>=maze_size.x-1 || y<0 || y>=maze_size.y)
-        return;
+        return; 
     solution.clear();
     uint32_t x_mask = 0x00'00'00'01 << x;
     right_maze_mask[y] ^= x_mask;
@@ -188,7 +188,16 @@ void MyMaze::set_stop(int x, int y)
 //===========================================================================
 void MyMaze::set_diag_step(bool val)
 {
-    allow_diagonal = val;
+    if(val != allow_diagonal){
+        allow_diagonal = val;
+        if(!solution.empty())
+            resolve_maze();
+    }
+}
+//===========================================================================
+void MyMaze::clear_solution()
+{
+    solution.clear();
 }
 
 //====RESOLVE METHOD============================================================
@@ -327,6 +336,82 @@ void MyMaze::set_random_maze()
 //===========================================================================
 void MyMaze::set_ellers_maze()
 {
-    // Здесь будет генератор лабиринта по алгоритму Эллера
+    solution.clear();
+    for(int i=0;i<32;++i){
+        right_maze_mask[i]  = 0x00'00'00'00;
+        bottom_maze_mask[i] = 0x00'00'00'00;
+    }
+
+    std::vector<int> CURR_ROW_SETS;
+    int SET_counter = 0;
+
+//Шаг 1: Создание первой строки
+    for(int x=0;x<maze_size.x;++x)
+        CURR_ROW_SETS.push_back(0);
+//-------------------
+    for(int y=0;y<maze_size.y;++y){
+//Шаг 2: Присоединяем все ячейки не принадлежащие множествам к свои новым множествам
+        for(int x=0;x<maze_size.x;++x){
+            if(CURR_ROW_SETS[x]==0)
+                CURR_ROW_SETS[x] = ++SET_counter;
+        }
+//-------------------
+//Шаг 3: Создадим границы справа
+        for(int x=0;x<maze_size.x-1;++x){
+            bool random_choise = ((uint32_t)rand() & 0x00'00'10'00);
+            if((random_choise == true) ||
+               (CURR_ROW_SETS[x] == CURR_ROW_SETS[x+1]))
+                right_maze_mask[y] |= (0x00'00'00'01<<x);
+            else{
+                int SET_to_merge = CURR_ROW_SETS[x+1];
+                for(int i=0;i<maze_size.x;++i){
+                    if(CURR_ROW_SETS[i] == SET_to_merge)
+                        CURR_ROW_SETS[i] = CURR_ROW_SETS[x];
+                }
+            }
+        }
+//Последнюю строку будем завершать иначе
+        if(y == maze_size.y-1)
+            break;
+//-------------------
+//Шаг 4: Создание нижних границ
+        for(int x=0;x<maze_size.x;++x){
+            bool random_choise = ((uint32_t)rand() & 0x00'00'10'00);
+            if(random_choise == true)
+                bottom_maze_mask[y] |= (0x00'00'00'01<<x);
+        }
+//Убедимся, что каждое множество ячеек имеет хотя бы одну ячейку без нижней границы.
+//Если это условие не будет выполнено, то мы создадим изолированные области.
+        for(int x=0;x<maze_size.x;++x){
+            int EXITS_FROM_SET = 0;
+            for(int i=0;i<maze_size.x;++i){
+                if((CURR_ROW_SETS[i] == CURR_ROW_SETS[x]) &&
+                   (bottom_maze_mask[y] & (0x00'00'00'01<<i)) == false)
+                    EXITS_FROM_SET++;
+            }
+            if(EXITS_FROM_SET == 0)
+                bottom_maze_mask[y] &= ~(0x00'00'00'01<<x);
+        }
+//-------------------
+//Шаг 5А: Создание новой строки
+        for(int x=0;x<maze_size.x;++x){
+            if(bottom_maze_mask[y] & (0x00'00'00'01<<x))
+                CURR_ROW_SETS[x] = 0;
+        }
+//-------------------
+    }
+//Шаг 5Б: Завершение последней строки
+//Удаляем все границы ячеек принадлежащих разным множествам
+    for(int x=0;x<maze_size.x-1;++x){
+        if((right_maze_mask[maze_size.y-1] & (0x00'00'00'01<<x)) &&
+           (CURR_ROW_SETS[x] != CURR_ROW_SETS[x+1])){
+            right_maze_mask[maze_size.y-1] &= ~(0x00'00'00'01<<x);
+            int SET_to_merge = CURR_ROW_SETS[x+1];
+            for(int i=0;i<maze_size.x;++i){
+                if(CURR_ROW_SETS[i] == SET_to_merge)
+                    CURR_ROW_SETS[i] = CURR_ROW_SETS[x];
+            }
+        }
+    }
 }
 //===========================================================================

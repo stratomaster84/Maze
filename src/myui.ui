@@ -187,24 +187,6 @@
     <string>Generate Random Maze</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="resolve_but">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>320</y>
-     <width>150</width>
-     <height>50</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>14</pointsize>
-    </font>
-   </property>
-   <property name="text">
-    <string>Resolve</string>
-   </property>
-  </widget>
   <widget class="MyFrame" name="maze_frame">
    <property name="geometry">
     <rect>
@@ -227,7 +209,7 @@
   <widget class="QCheckBox" name="allow_diag_but">
    <property name="geometry">
     <rect>
-     <x>20</x>
+     <x>10</x>
      <y>290</y>
      <width>150</width>
      <height>20</height>
@@ -262,6 +244,27 @@
    <property name="text">
     <string>Generate Ellers
 Algorithm Maze</string>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="show_solution_but">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>320</y>
+     <width>150</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>10</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string>Show Solution</string>
+   </property>
+   <property name="checked">
+    <bool>false</bool>
    </property>
   </widget>
  </widget>

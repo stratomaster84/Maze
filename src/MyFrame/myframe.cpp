@@ -155,13 +155,13 @@ void MyFrame::mousePressEvent(QMouseEvent *event)
         if(event->buttons() & Qt::LeftButton){
             if(maze.get_start().x != x || maze.get_start().y != y){
                 maze.set_start(x,y);
-                repaint();
+                emit dots_changed(); //must have repaint
             }
         }
         else if(event->buttons() & Qt::RightButton){
             if(maze.get_stop().x != x || maze.get_stop().y != y){
                 maze.set_stop(x,y);
-                repaint();
+                emit dots_changed(); //must have repaint
             }
         }
     }

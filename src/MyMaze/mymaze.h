@@ -46,6 +46,7 @@ struct MyMaze
     void set_start(int x, int y);
     void set_stop(int x, int y);
     void set_diag_step(bool val);
+    void clear_solution();
 
 // RESOLVE METHOD
     int  resolve_maze();            // 0 - OK
@@ -71,6 +72,7 @@ private:
                                         // { 1, 0} - to right
                                         // { 0,-1} - to down
                                         // { 0, 1} - to up
+                                        // {
 
 };
 
