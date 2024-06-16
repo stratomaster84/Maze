@@ -20,10 +20,10 @@ public slots:
     void radio_maze_but_clicked();
 
     void maze_resized();
-
     void random_maze();
-
     void resolve_but();
+
+    void allow_diagonal_step(int state);
 
 private:
     Ui::MyUI *ui;

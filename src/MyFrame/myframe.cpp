@@ -20,45 +20,46 @@ void MyFrame::paintEvent(QPaintEvent *event){
 
     drawMaze();
 
-    if(!maze.solution.empty())
+    if(!maze.get_solution().empty())
         drawSolution();
 
-    if(maze.solution_start.x >= 0 && maze.solution_start.y >= 0)
+    if(maze.get_start().x >= 0 && maze.get_start().y >= 0)
         drawStart();
 
-    if(maze.solution_stop.x >= 0 && maze.solution_stop.y >= 0)
+    if(maze.get_stop().x >= 0 && maze.get_stop().y >= 0)
         drawStop();
 
     QFrame::paintEvent(event);   // передать управление стандартному обработчику
 }
 //===========================================================================
 void MyFrame::drawMaze(){
-    double _hx = (double)width() /(double)maze.maze_size.x;
-    double _hy = (double)height()/(double)maze.maze_size.y;
+    double _hx = (double)width() /(double)maze.get_size().x;
+    double _hy = (double)height()/(double)maze.get_size().y;
 
     QPainter _painter(this);
 
-//------рисуем заблокированные ячейки
-    for(int y = 0; y < maze.maze_size.y; ++y){
-        for(int x = 0; x < maze.maze_size.x; ++x){
-            if(maze.checkBlocked(x,y)){
+//------сначала рисуем заблокированные ячейки
+//------нельзя в основной блок for, потому что будет затирать нарисованный лабиринт
+    for(int y = 0; y < maze.get_size().y; ++y){
+        for(int x = 0; x < maze.get_size().x; ++x){
+            if(maze.get_free_neighbours_FN(x,y) == 0b00'00'00'00){
                     _painter.fillRect(_hx*x,_hy*y,_hx,_hy,QBrush(MAZE_BLOCKED_COLOR,Qt::SolidPattern));
             }
         }
     }
 //------
     _painter.setPen(QPen(MAZE_BORDER_COLOR,MAZE_BORDER_WIDTH,Qt::SolidLine));
-    for(int y = 0; y < maze.maze_size.y; ++y){
-        for(int x = 0; x < maze.maze_size.x; ++x){
-            uint32_t tmp = 0x00'00'00'01 << x;
-            if((x != (maze.maze_size.x-1)) && (maze.right_maze_mask[y] & tmp)){
+    for(int x = 0; x < maze.get_size().x; ++x){
+        uint32_t x_mask = 0x00'00'00'01 << x;   // маска для поиска по x
+        for(int y = 0; y < maze.get_size().y; ++y){
+            if((x != (maze.get_size().x-1)) && (maze.get_right_mask()[y] & x_mask)){
                 // тогда рисуем правую линию
                 _painter.drawLine(_hx*(x+1),
                                   _hy*y,
                                   _hx*(x+1),
                                   _hy*(y+1));
             }
-            if((y != (maze.maze_size.y-1)) && (maze.bottom_maze_mask[y] & tmp)){
+            if((y != (maze.get_size().y-1)) && (maze.get_bottom_mask()[y] & x_mask)){
                 // тогда рисуем нижнюю линию
                 _painter.drawLine(_hx*x,
                                   _hy*(y+1),
@@ -70,15 +71,15 @@ void MyFrame::drawMaze(){
 }
 //===========================================================================
 void MyFrame::drawSolution(){
-    double _hx = (double)width() /(double)maze.maze_size.x;
-    double _hy = (double)height()/(double)maze.maze_size.y;
+    double _hx = (double)width() /(double)maze.get_size().x;
+    double _hy = (double)height()/(double)maze.get_size().y;
 
-    int cur_x = maze.solution_start.x;
-    int cur_y = maze.solution_start.y;
+    int cur_x = maze.get_stop().x;  // начинаем с ПОСЛЕДНЕЙ точки
+    int cur_y = maze.get_stop().y;
 
     QPainter _painter(this);
     _painter.setPen(QPen(SOLUTION_COLOR,SOLUTION_WIDTH,Qt::SolidLine));
-    for(auto &[dir_x,dir_y] : maze.solution){
+    for(auto [dir_x, dir_y] : maze.get_solution()){
         _painter.drawLine(_hx*((double) cur_x          + 0.5),
                           _hy*((double) cur_y          + 0.5),
                           _hx*((double)(cur_x + dir_x) + 0.5),
@@ -89,11 +90,11 @@ void MyFrame::drawSolution(){
 }
 //===========================================================================
 void MyFrame::drawStart(){
-    double _hx = (double)width() /(double)maze.maze_size.x;
-    double _hy = (double)height()/(double)maze.maze_size.y;
+    double _hx = (double)width() /(double)maze.get_size().x;
+    double _hy = (double)height()/(double)maze.get_size().y;
 
-    double dx = ((double)maze.solution_start.x + 0.5)*_hx;
-    double dy = ((double)maze.solution_start.y + 0.5)*_hy;
+    double dx = ((double)maze.get_start().x + 0.5)*_hx;
+    double dy = ((double)maze.get_start().y + 0.5)*_hy;
 
     double dh = (_hx<_hy ? _hx : _hy)/4.0;
 
@@ -107,11 +108,11 @@ void MyFrame::drawStart(){
 }
 //===========================================================================
 void MyFrame::drawStop(){
-    double _hx = (double)width() /(double)maze.maze_size.x;
-    double _hy = (double)height()/(double)maze.maze_size.y;
+    double _hx = (double)width() /(double)maze.get_size().x;
+    double _hy = (double)height()/(double)maze.get_size().y;
 
-    double dx = ((double)maze.solution_stop.x + 0.5)*_hx;
-    double dy = ((double)maze.solution_stop.y + 0.5)*_hy;
+    double dx = ((double)maze.get_stop().x + 0.5)*_hx;
+    double dy = ((double)maze.get_stop().y + 0.5)*_hy;
 
     double dh = (_hx<_hy ? _hx : _hy)/4.0;
 
@@ -126,8 +127,8 @@ void MyFrame::drawStop(){
 //===========================================================================
 void MyFrame::mousePressEvent(QMouseEvent *event)
 {
-    double _hx = (double)width() /(double)maze.maze_size.x;
-    double _hy = (double)height()/(double)maze.maze_size.y;
+    double _hx = (double)width() /(double)maze.get_size().x;
+    double _hy = (double)height()/(double)maze.get_size().y;
 
     int x = (int)((double)event->x()/_hx);
     int y = (int)((double)event->y()/_hy);
@@ -140,11 +141,11 @@ void MyFrame::mousePressEvent(QMouseEvent *event)
             double round_y = std::round(dy);
             double delta_x = abs(round_x - dx);
             double delta_y = abs(round_y - dy);
-            if     (delta_x <= MAZE_MODIFY_DELTA && round_x < maze.maze_size.x){
+            if     (delta_x <= MAZE_MODIFY_DELTA && round_x < maze.get_size().x){
                 maze.invert_right(round_x-1,y);
                 repaint();
             }
-            else if(delta_y <= MAZE_MODIFY_DELTA && round_y < maze.maze_size.y){
+            else if(delta_y <= MAZE_MODIFY_DELTA && round_y < maze.get_size().y){
                 maze.invert_bottom(x,round_y-1);
                 repaint();
             }
@@ -152,13 +153,13 @@ void MyFrame::mousePressEvent(QMouseEvent *event)
     }
     else{
         if(event->buttons() & Qt::LeftButton){
-            if(maze.solution_start.x != x || maze.solution_start.y != y){
+            if(maze.get_start().x != x || maze.get_start().y != y){
                 maze.set_start(x,y);
                 repaint();
             }
         }
         else if(event->buttons() & Qt::RightButton){
-            if(maze.solution_stop.x != x || maze.solution_stop.y != y){
+            if(maze.get_stop().x != x || maze.get_stop().y != y){
                 maze.set_stop(x,y);
                 repaint();
             }

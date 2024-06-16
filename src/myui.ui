@@ -184,14 +184,14 @@
     </font>
    </property>
    <property name="text">
-    <string>Random Construct</string>
+    <string>Generate Random Maze</string>
    </property>
   </widget>
   <widget class="QPushButton" name="resolve_but">
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>230</y>
+     <y>260</y>
      <width>150</width>
      <height>50</height>
     </rect>
@@ -222,6 +222,24 @@
    </property>
    <property name="lineWidth">
     <number>2</number>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="allow_diag_but">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>230</y>
+     <width>150</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>10</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string>Allow Diagonal Step</string>
    </property>
   </widget>
  </widget>

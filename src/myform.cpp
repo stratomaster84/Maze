@@ -17,6 +17,8 @@ MyForm::MyForm(QWidget *parent)
     connect(ui->random_but,SIGNAL(clicked()),this,SLOT(random_maze()));
 
     connect(ui->resolve_but,SIGNAL(clicked()),this,SLOT(resolve_but()));
+
+    connect(ui->allow_diag_but,SIGNAL(stateChanged(int)),this,SLOT(allow_diagonal_step(int)));
 }
 //===========================================================================
 MyForm::~MyForm()
@@ -30,6 +32,7 @@ void MyForm::radio_resolve_but_clicked()
     ui->random_but->setEnabled(false);
     ui->maze_frame->modify_mode = false;
     ui->resolve_but->setEnabled(true);
+    ui->allow_diag_but->setEnabled(true);
 }
 //===========================================================================
 void MyForm::radio_maze_but_clicked()
@@ -38,6 +41,7 @@ void MyForm::radio_maze_but_clicked()
     ui->random_but->setEnabled(true);
     ui->maze_frame->modify_mode = true;
     ui->resolve_but->setEnabled(false);
+    ui->allow_diag_but->setEnabled(false);
 }
 //===========================================================================
 void MyForm::maze_resized()
@@ -54,7 +58,29 @@ void MyForm::random_maze()
 //===========================================================================
 void MyForm::resolve_but()
 {
-    ui->maze_frame->maze.resolve_maze();
-    ui->maze_frame->repaint();
+    int err = ui->maze_frame->maze.resolve_maze();
+    switch (err)
+    {
+        case 0:
+            // OK
+            ui->maze_frame->repaint();
+            break;
+        case 1:
+            // NO START POINT
+            break;
+        case 2:
+            // NO STOP POINT
+            break;
+        case 3:
+            // NO SOLUTIONS
+            break;
+        default:
+            break;
+    }
+}
+//===========================================================================
+void MyForm::allow_diagonal_step(int state)
+{
+    ui->maze_frame->maze.set_diag_step(state);
 }
 //===========================================================================
