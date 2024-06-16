@@ -34,6 +34,18 @@ struct MyMaze
     void resize_maze(int width, int height);
     void set_random_maze();
     void resolve_maze();
+    void set_start(int x, int y);
+    void set_stop(int x, int y);
+
+    void invert_right(int x, int y);
+    void invert_bottom(int x, int y);
+
+    bool checkBlocked(int x, int y);
+
+    bool getRight(int x, int y);
+    bool getLeft(int x, int y);
+    bool getBottom(int x, int y);
+    bool getTop(int x, int y);
 };
 
 //===========================================================================

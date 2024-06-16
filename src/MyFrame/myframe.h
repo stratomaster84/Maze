@@ -6,8 +6,9 @@
 
 #define MAZE_BORDER_COLOR   Qt::black
 #define MAZE_FILL_COLOR     Qt::white
-#define BLOCKED_CELL_COLOR  Qt::black
 #define MAZE_BORDER_WIDTH   2
+#define MAZE_MODIFY_DELTA   0.2
+#define MAZE_BLOCKED_COLOR  Qt::darkGray
 
 #define SOLUTION_COLOR      Qt::red
 #define SOLUTION_WIDTH      4
@@ -24,8 +25,12 @@ public:
 
     MyMaze maze;
 
+    bool modify_mode;
+
 protected:
-    virtual void paintEvent(QPaintEvent *) override;
+    virtual void paintEvent(QPaintEvent *event) override;
+    virtual void mousePressEvent(QMouseEvent *event) override;
+
     void drawMaze();
     void drawSolution();
     void drawStart();

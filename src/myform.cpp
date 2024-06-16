@@ -1,6 +1,7 @@
 #include "myform.h"
 #include "./ui_myui.h"
 
+//===========================================================================
 MyForm::MyForm(QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::MyUI)
@@ -17,36 +18,43 @@ MyForm::MyForm(QWidget *parent)
 
     connect(ui->resolve_but,SIGNAL(clicked()),this,SLOT(resolve_but()));
 }
-
+//===========================================================================
 MyForm::~MyForm()
 {
     delete ui;
 }
-
+//===========================================================================
 void MyForm::radio_resolve_but_clicked()
 {
     ui->size_box->setEnabled(false);
     ui->random_but->setEnabled(false);
+    ui->maze_frame->modify_mode = false;
     ui->resolve_but->setEnabled(true);
 }
+//===========================================================================
 void MyForm::radio_maze_but_clicked()
 {
     ui->size_box->setEnabled(true);
     ui->random_but->setEnabled(true);
+    ui->maze_frame->modify_mode = true;
     ui->resolve_but->setEnabled(false);
 }
+//===========================================================================
 void MyForm::maze_resized()
 {
     ui->maze_frame->maze.resize_maze(ui->width_spin->value(),ui->height_spin->value());
     ui->maze_frame->repaint();
 }
+//===========================================================================
 void MyForm::random_maze()
 {
     ui->maze_frame->maze.set_random_maze();
     ui->maze_frame->repaint();
 }
+//===========================================================================
 void MyForm::resolve_but()
 {
     ui->maze_frame->maze.resolve_maze();
     ui->maze_frame->repaint();
 }
+//===========================================================================
