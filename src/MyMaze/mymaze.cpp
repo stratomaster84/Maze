@@ -334,79 +334,127 @@ void MyMaze::set_ellers_maze()
     }
 
     std::vector<int> CURR_ROW_SETS;
+    int counter_=1;
 
-//fill_empty_set_begin
-    for(int x=0;x<maze_size.x;++x)
-        CURR_ROW_SETS.push_back(0);
-//fill_empty_set_end
+    fillEmptyValue(CURR_ROW_SETS);
+    for (int j = 0; j < maze_size.y - 1; j++) {
+        assignUniqueSet(CURR_ROW_SETS,counter_);
+        addingVerticalWalls(CURR_ROW_SETS,j);
+        addingHorizontalWalls(CURR_ROW_SETS,j);
+        checkedHorizontalWalls(CURR_ROW_SETS,j);
+        preparatingNewLine(CURR_ROW_SETS,j);
+    }
+    addingEndLine(CURR_ROW_SETS,counter_);
+    clearGenerator(CURR_ROW_SETS,counter_);
+}
 
-    int SET_counter = 1;
-    for(int y=0;y<maze_size.y-1;++y){
+bool randomBool() {
+    return std::rand()&0x1;
+}
 
-//assignUniqueSet_begin
-        for(int x=0;x<maze_size.x;++x){
-            if(CURR_ROW_SETS[x]==0)
-                CURR_ROW_SETS[x] = SET_counter++;
-        }
-//assignUniqueSet_end
+void MyMaze::clearGenerator(std::vector<int>& sideLine_, int& counter_) {
+    sideLine_.clear();
+    counter_ = 1;
+}
 
-//addingVerticalWalls_begin
-        for(int x=0;x<maze_size.x-1;++x){
-            bool random_choise = ((uint32_t)rand() & 0x00'00'10'00);
-            if(random_choise == true || CURR_ROW_SETS[x] == CURR_ROW_SETS[x+1])
-                right_maze_mask[y] |= (0x00'00'00'01<<x);
-            else{
-                int SET_for_merge = CURR_ROW_SETS[x+1];
-                for(int i=0;i<maze_size.x;++i){
-                    if(CURR_ROW_SETS[i] == SET_for_merge)
-                        CURR_ROW_SETS[i] = CURR_ROW_SETS[x];
-                }
-            }
-        }
-//addingVerticalWalls_end
+void MyMaze::fillEmptyValue(std::vector<int>& sideLine_) {
+    for (int i = 0; i < maze_size.x; i++) {
+        sideLine_.push_back(0);
+    }
+}
 
-//addingHorizontalWalls_begin
-        for(int x=0;x<maze_size.x; ++x){
-            bool random_choise = ((uint32_t)rand() & 0x00'00'10'00);
-
-//----
-            int cell_count_with_SET = 0;
-//----
-            for(int i=0;i<maze_size.x;++i){
-                if(CURR_ROW_SETS[i] == CURR_ROW_SETS[i])
-                    cell_count_with_SET++;
-            }
-            if(random_choise == true && cell_count_with_SET != 1)
-                bottom_maze_mask[y] |= (0x00'00'00'01<<x);
-        }
-//addingHorizontalWalls_end
-
-//checkedHorizontalWalls_begin
-        for(int x=0;x<maze_size.x;++x){
-//----
-            int countHorizontalWalls = 0;
-//----
-            for(int i=0;i<maze_size.x;++i){
-                if((CURR_ROW_SETS[i] == CURR_ROW_SETS[x]) &&
-                   (bottom_maze_mask[y] & (0x00'00'00'01<<i)) == false)
-                    countHorizontalWalls++;
-            }
-            if(countHorizontalWalls==0)
-                bottom_maze_mask[y] &= ~(0x00'00'00'01<<x);
-        }
-//checkedHorizontalWalls_end
-
-//preparatingNewLine_begin
-        for(int x=0;x<maze_size.x;++x){
-            if((bottom_maze_mask[y] & (0x00'00'00'01<<x)) == true)
-                CURR_ROW_SETS[x] = 0;
+void MyMaze::assignUniqueSet(std::vector<int>& sideLine_, int& counter_) {
+    for (int i = 0; i < maze_size.x; i++) {
+        if (sideLine_[i] == 0) {
+            sideLine_[i] = counter_;
+            counter_++;
         }
     }
-
-//addingEndLine_begin
-
-//addingEndLine_end
 }
+
+void MyMaze::mergeSet(std::vector<int>& sideLine_,int index, int element) {
+    int mutableSet = sideLine_[index + 1];
+    for (int j = 0; j < maze_size.x; j++) {
+        if (sideLine_[j] == mutableSet) {
+            sideLine_[j] = element;
+        }
+    }
+}
+
+void MyMaze::addingVerticalWalls(std::vector<int>& sideLine_,int row) {
+    for (int i = 0; i < maze_size.x - 1; i++) {
+        bool choise = randomBool();
+        if (choise == true || sideLine_[i] == sideLine_[i + 1]) {
+            right_maze_mask[row] |= (0x1<<i);
+        } else {
+            mergeSet(sideLine_,i, sideLine_[i]);
+        }
+    }
+    right_maze_mask[row] |= (0x1<<(maze_size.x-1));
+}
+
+int MyMaze::calculateUniqueSet(std::vector<int>& sideLine_, int element) {
+    int countUniqSet = 0;
+    for (int i = 0; i < maze_size.x; i++) {
+        if (sideLine_[i] == element) {
+            countUniqSet++;
+        }
+    }
+    return countUniqSet;
+}
+
+void MyMaze::addingHorizontalWalls(std::vector<int>& sideLine_,int row) {
+    for (int i = 0; i < maze_size.x; i++) {
+        bool choise = randomBool();
+        if (calculateUniqueSet(sideLine_,sideLine_[i]) != 1 && choise == true) {
+            bottom_maze_mask[row] |= (0x1<<i);
+        }
+    }
+}
+
+int MyMaze::calculateHorizontalWalls(std::vector<int>& sideLine_,int element, int row) {
+    int countHorizontalWalls = 0;
+    for (int i = 0; i < maze_size.x; i++) {
+        if (sideLine_[i] == element && (bottom_maze_mask[row] & (0x1<<i)) == false) {
+            countHorizontalWalls++;
+        }
+    }
+    return countHorizontalWalls;
+}
+
+void MyMaze::checkedHorizontalWalls(std::vector<int>& sideLine_,int row) {
+    for (int i = 0; i < maze_size.x; i++) {
+        if (calculateHorizontalWalls(sideLine_,sideLine_[i], row) == 0) {
+            bottom_maze_mask[row] &= ~(uint32_t)(0x1<<i);
+        }
+    }
+}
+
+void MyMaze::preparatingNewLine(std::vector<int>& sideLine_,int row) {
+    for (int i = 0; i < maze_size.x; i++) {
+        if ((bottom_maze_mask[row] & (0x1<<i)) == true) {
+            sideLine_[i] = 0;
+        }
+    }
+}
+
+void MyMaze::checkedEndLine(std::vector<int>& sideLine_) {
+    for (int i = 0; i < maze_size.x - 1; i++) {
+        if (sideLine_[i] != sideLine_[i + 1]) {
+            right_maze_mask[maze_size.y - 1] &= ~(uint32_t)(0x1<<i);
+            mergeSet(sideLine_,i, sideLine_[i]);
+        }
+        bottom_maze_mask[maze_size.y - 1] |= (0x1<<i);
+    }
+    bottom_maze_mask[maze_size.y - 1] |= (0x1<<(maze_size.x - 1));
+}
+
+void MyMaze::addingEndLine(std::vector<int>& sideLine_, int& counter_) {
+    assignUniqueSet(sideLine_,counter_);
+    addingVerticalWalls(sideLine_, maze_size.y - 1);
+    checkedEndLine(sideLine_);
+}
+
 //=====SUPPORTING METHODS===========================================================
 uint32_t MyMaze::myrand()
 {

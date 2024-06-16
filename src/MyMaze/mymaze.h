@@ -74,6 +74,19 @@ private:
 
 // SUPPORTING METHODS
     uint32_t myrand();
+
+void fillEmptyValue(std::vector<int>& sideLine_) ;
+void assignUniqueSet(std::vector<int>& sideLine_, int& counter_);
+void addingVerticalWalls(std::vector<int>& sideLine_, int row);
+void mergeSet(std::vector<int>& sideLine_, int index, int element);
+void addingHorizontalWalls(std::vector<int>& sideLine_, int row);
+int calculateUniqueSet(std::vector<int>& sideLine_, int element);
+void checkedHorizontalWalls(std::vector<int>& sideLine_, int row);
+int calculateHorizontalWalls(std::vector<int>& sideLine_, int element, int row);
+void preparatingNewLine(std::vector<int>& sideLine_, int row);
+void checkedEndLine(std::vector<int>& sideLine_);
+void addingEndLine(std::vector<int>& sideLine_, int& counter_) ;
+void clearGenerator(std::vector<int>& sideLine_, int& counter_) ;
 };
 
 //===========================================================================
