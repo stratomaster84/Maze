@@ -4,21 +4,22 @@
 #include <vector>
 #include <cstdint>
 
-#define MIN_MAZE_SIZE 2
-#define BIT_DEPTH 64
+#define MIN_MAZE_SIZE 4 // минимальный размер лабиринта по одной оси
+#define BIT_DEPTH 64    // максимальный размер лабиринта по одной оси (8, 16, 32, 64)
 
 #if BIT_DEPTH==8
-typedef uint8_t MASK_TYPE;
+typedef uint8_t MASK_TYPE;  // тип маски, если максимальный размер лабиринта - 8
 #elif  BIT_DEPTH==16
-typedef uint16_t MASK_TYPE;
+typedef uint16_t MASK_TYPE; // тип маски, если максимальный размер лабиринта - 16
 #elif  BIT_DEPTH==32
-typedef uint32_t MASK_TYPE;
+typedef uint32_t MASK_TYPE; // тип маски, если максимальный размер лабиринта - 32
 #elif  BIT_DEPTH==64
-typedef uint64_t MASK_TYPE;
+typedef uint64_t MASK_TYPE; // тип маски, если максимальный размер лабиринта - 64
 #endif
 
 //===========================================================================
-struct maze_point
+struct maze_point   // тип точки с координатами по полю
+                    // также используется, для хранения направлений решения
 {
     int x;
     int y;
@@ -27,18 +28,18 @@ struct maze_point
 struct MyMaze
 {
 public:
-    const static MASK_TYPE FIRST_BIT_MASK=0x01;
-    MyMaze(int heigth, int width);
+    const static MASK_TYPE FIRST_BIT_MASK=0x01; // маска для поиска по полю стенок лабиринта
+    MyMaze();   // конструктор по умолчанию
 
-// GET METHODS
-    const MASK_TYPE* get_right_mask() const;
-    const MASK_TYPE* get_bottom_mask() const;
-    maze_point      get_size() const;
+// МЕТОДЫ ПОЛУЧЕНИЯ ПЕРЕМЕННЫХ ЛАБИРИНТА
+    const MASK_TYPE* get_right_mask() const;        // получить указатель на маску стенок справа
+    const MASK_TYPE* get_bottom_mask() const;       // получить указатель на маску стенок снизу
+    maze_point      get_size() const;               // получить размер лабиринта
 
-    maze_point      get_start() const;
-    maze_point      get_stop() const;
-    const std::vector<maze_point>& get_solution() const;
-    bool            get_diag_step() const;
+    maze_point      get_start() const;              // получить точку старта
+    maze_point      get_stop() const;               // получить точку финиша
+    const std::vector<maze_point>& get_solution() const;    // получить указатель на решение
+    bool            get_diag_step() const;          // разрешён ли диагональный шаг
 
     uint8_t get_free_neighbours_FN(int x, int y);   //найти свободных соседей в окрестности фон-Неймана
                                                     // -----------
@@ -53,45 +54,44 @@ public:
                                                     // --|5|4|3|--
                                                     // -----------
 
-// SET METHODS
-    void invert_right(int x, int y);
-    void invert_bottom(int x, int y);
+// МЕТОДЫ УСТАНОВКИ ПЕРЕМЕННЫХ ЛАБИРИНТА
+    void invert_right(int x, int y);            // поменять наличие стенки справа
+    void invert_bottom(int x, int y);           // поменять наличие стенки снизу
 
-    void resize_maze(int width, int height);
-    void set_start(int x, int y);
-    void set_stop(int x, int y);
-    void set_diag_step(bool val);
-    void clear_solution();
+    void resize_maze(int width, int height);    // поменять размер лабиринта
+    void set_start(int x, int y);               // установить точку старта
+    void set_stop(int x, int y);                // установить точку финиша
+    void set_diag_step(bool val);               // разрешить/запретить шаг по диагонали в решении
+    void clear_solution();                      // очистить решение
 
-// RESOLVE METHOD
-    int  resolve_maze();            // 0 - OK
-                                    // 1 - NO START
-                                    // 2 - NO STOP
-                                    // 3 - NO SOLUTIONS
+// МЕТОД ПОИСКА РЕШЕНИЯ
+    int  resolve_maze();    // найти кротчайшее решение лабиринта по алгоритму Ли (возвращает код ошибки)
+                            // 0 - OK
+                            // 1 - нет точки старта
+                            // 2 - нет точки финиша
+                            // 3 - нет возможных решений
 
-// MAZE CONSTRUCTORS
-    void set_random_maze();         // простой случайный лабиринт
-    void set_ellers_maze();         // лабиринт по алгоритму Эллера
+// МЕТОДЫ ГЕНЕРАЦИИ ЛАБИРИНТОВ
+    void set_random_maze();         // генерирует простой случайный лабиринт (может быть без решений)
+    void set_ellers_maze();         // генерирует лабиринт по алгоритму Эллера (всегда найдутся решения)
 
 private:
-// MAZE VARIABLES
-    MASK_TYPE right_maze_mask [BIT_DEPTH];      // матрица ПРАВЫХ сторон лабиринта (каждое значение - СТРОКА, а не столбец)
-    MASK_TYPE bottom_maze_mask[BIT_DEPTH];      // матрица НИЖНИХ сторон лабиринта  (каждое значение - СТРОКА, а не столбец)
-    maze_point maze_size;
+// ПЕРЕМЕННЫЕ ОПИСАНИЯ ЛАБИРИНТА
+    MASK_TYPE right_maze_mask [BIT_DEPTH];      // матрица ПРАВЫХ сторон лабиринта
+    MASK_TYPE bottom_maze_mask[BIT_DEPTH];      // матрица НИЖНИХ сторон лабиринта                                                // (каждое значение - СТРОКА, а не столбец)
+                                                // (каждое значение - СТРОКА, а не столбец)
+    maze_point maze_size;                       // размер лабиринта
 
-// SOLUTION VARIABLES
-    bool allow_diagonal;
-    maze_point solution_start;
-    maze_point solution_stop;
-    std::vector<maze_point> solution;   // {-1, 0} - to left
-                                        // { 1, 0} - to right
-                                        // { 0, 1} - to up
-                                        // { 0, 1} - to down
-                                        // { 1, 1} - diagonal right-down, etc.
+// ПЕРЕМЕННЫЕ ОПИСАНИЯ РЕШЕНИЯ
+    bool allow_diagonal;                // разрешает/запрещает диагональный шаг в решении
+    maze_point solution_start;          // точка старта
+    maze_point solution_stop;           // точка финиша
+    std::vector<maze_point> solution;   // решение (точки с направлением  по осям каждого шага)
+                                        // начинается с ТОЧКИ ФИНИША
 
-// SPECIAL METHODS
-    MASK_TYPE random();
-    bool randBool();
+// СПЕЦИАЛЬНЫЕ МЕТОДЫ
+    MASK_TYPE random();                 // случайное число требуемой разрядности
+    bool randBool();                    // случайное булево значение
 };
 
 //===========================================================================
