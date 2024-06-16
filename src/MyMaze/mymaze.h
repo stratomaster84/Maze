@@ -47,20 +47,23 @@ struct MyMaze
     void set_stop(int x, int y);
     void set_diag_step(bool val);
 
-// RESOLVING METHODS    
+// RESOLVE METHOD
     int  resolve_maze();            // 0 - OK
                                     // 1 - NO START
                                     // 2 - NO STOP
                                     // 3 - NO SOLUTIONS
-    void set_random_maze();
+
+// MAZE CONSTRUCTORS
+    void set_random_maze();         // простой случайный лабиринт
+    void set_ellers_maze();         // лабиринт по алгоритму эллера
 
 private:
-    // MAZE VARIABLES
+// MAZE VARIABLES
     uint32_t right_maze_mask [32];      // матрица ПРАВЫХ сторон лабиринта (каждое значение - СТРОКА, а не столбец)
     uint32_t bottom_maze_mask[32];      // матрица НИЖНИХ сторон лабиринта  (каждое значение - СТРОКА, а не столбец)
     maze_point maze_size;
 
-    // SOLUTION VARIABLES
+// SOLUTION VARIABLES
     bool allow_diagonal;
     maze_point solution_start;
     maze_point solution_stop;
@@ -68,6 +71,9 @@ private:
                                         // { 1, 0} - to right
                                         // { 0,-1} - to down
                                         // { 0, 1} - to up
+
+// SUPPORTING METHODS
+    uint32_t myrand();
 };
 
 //===========================================================================

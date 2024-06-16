@@ -15,6 +15,7 @@ MyForm::MyForm(QWidget *parent)
     connect(ui->height_spin,SIGNAL(valueChanged(int)),this,SLOT(maze_resized()));
 
     connect(ui->random_but,SIGNAL(clicked()),this,SLOT(random_maze()));
+    connect(ui->ellers_but,SIGNAL(clicked()),this,SLOT(ellers_maze()));
 
     connect(ui->resolve_but,SIGNAL(clicked()),this,SLOT(resolve_but()));
 
@@ -30,6 +31,7 @@ void MyForm::radio_resolve_but_clicked()
 {
     ui->size_box->setEnabled(false);
     ui->random_but->setEnabled(false);
+    ui->ellers_but->setEnabled(false);
     ui->maze_frame->modify_mode = false;
     ui->resolve_but->setEnabled(true);
     ui->allow_diag_but->setEnabled(true);
@@ -39,6 +41,7 @@ void MyForm::radio_maze_but_clicked()
 {
     ui->size_box->setEnabled(true);
     ui->random_but->setEnabled(true);
+    ui->ellers_but->setEnabled(true);
     ui->maze_frame->modify_mode = true;
     ui->resolve_but->setEnabled(false);
     ui->allow_diag_but->setEnabled(false);
@@ -53,6 +56,12 @@ void MyForm::maze_resized()
 void MyForm::random_maze()
 {
     ui->maze_frame->maze.set_random_maze();
+    ui->maze_frame->repaint();
+}
+//===========================================================================
+void MyForm::ellers_maze()
+{
+    ui->maze_frame->maze.set_ellers_maze();
     ui->maze_frame->repaint();
 }
 //===========================================================================

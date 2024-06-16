@@ -191,7 +191,7 @@ void MyMaze::set_diag_step(bool val)
     allow_diagonal = val;
 }
 
-//====RESOLVING METHODS============================================================
+//====RESOLVE METHOD============================================================
 int MyMaze::resolve_maze()      // 0 - OK
                                 // 1 - NO START POINT
                                 // 2 - NO STOP POINT
@@ -310,13 +310,107 @@ int MyMaze::resolve_maze()      // 0 - OK
     }
     return 0;
 }
-//===========================================================================
+
+//====MAZE CONSTRUCTORS============================================================
 void MyMaze::set_random_maze()
 {
     solution.clear();
     for(int i=0;i<32;++i){
-        right_maze_mask[i]  = (std::rand()<<24) | (std::rand()<<12) | std::rand();
-        bottom_maze_mask[i] = (std::rand()<<24) | (std::rand()<<12) | std::rand();
+        right_maze_mask[i]  = myrand();
+        bottom_maze_mask[i] = myrand();
     }
+    if(get_free_neighbours_FN(solution_start.x,solution_start.y) == 0b00'00'00'00)
+        solution_start = {-1,-1};
+    if(get_free_neighbours_FN(solution_stop.x,solution_stop.y) == 0b00'00'00'00)
+        solution_stop = {-1,-1};
+}
+//===========================================================================
+void MyMaze::set_ellers_maze()
+{
+    solution.clear();
+    for(int i=0;i<32;++i){
+        right_maze_mask[i]  = 0x00'00'00'00;
+        bottom_maze_mask[i] = 0x00'00'00'00;
+    }
+
+    std::vector<int> CURR_ROW_SETS;
+
+//fill_empty_set_begin
+    for(int x=0;x<maze_size.x;++x)
+        CURR_ROW_SETS.push_back(0);
+//fill_empty_set_end
+
+    int SET_counter = 1;
+    for(int y=0;y<maze_size.y-1;++y){
+
+//assignUniqueSet_begin
+        for(int x=0;x<maze_size.x;++x){
+            if(CURR_ROW_SETS[x]==0)
+                CURR_ROW_SETS[x] = SET_counter++;
+        }
+//assignUniqueSet_end
+
+//addingVerticalWalls_begin
+        for(int x=0;x<maze_size.x-1;++x){
+            bool random_choise = ((uint32_t)rand() & 0x00'00'10'00);
+            if(random_choise == true || CURR_ROW_SETS[x] == CURR_ROW_SETS[x+1])
+                right_maze_mask[y] |= (0x00'00'00'01<<x);
+            else{
+                int SET_for_merge = CURR_ROW_SETS[x+1];
+                for(int i=0;i<maze_size.x;++i){
+                    if(CURR_ROW_SETS[i] == SET_for_merge)
+                        CURR_ROW_SETS[i] = CURR_ROW_SETS[x];
+                }
+            }
+        }
+//addingVerticalWalls_end
+
+//addingHorizontalWalls_begin
+        for(int x=0;x<maze_size.x; ++x){
+            bool random_choise = ((uint32_t)rand() & 0x00'00'10'00);
+
+//----
+            int cell_count_with_SET = 0;
+//----
+            for(int i=0;i<maze_size.x;++i){
+                if(CURR_ROW_SETS[i] == CURR_ROW_SETS[i])
+                    cell_count_with_SET++;
+            }
+            if(random_choise == true && cell_count_with_SET != 1)
+                bottom_maze_mask[y] |= (0x00'00'00'01<<x);
+        }
+//addingHorizontalWalls_end
+
+//checkedHorizontalWalls_begin
+        for(int x=0;x<maze_size.x;++x){
+//----
+            int countHorizontalWalls = 0;
+//----
+            for(int i=0;i<maze_size.x;++i){
+                if((CURR_ROW_SETS[i] == CURR_ROW_SETS[x]) &&
+                   (bottom_maze_mask[y] & (0x00'00'00'01<<i)) == false)
+                    countHorizontalWalls++;
+            }
+            if(countHorizontalWalls==0)
+                bottom_maze_mask[y] &= ~(0x00'00'00'01<<x);
+        }
+//checkedHorizontalWalls_end
+
+//preparatingNewLine_begin
+        for(int x=0;x<maze_size.x;++x){
+            if((bottom_maze_mask[y] & (0x00'00'00'01<<x)) == true)
+                CURR_ROW_SETS[x] = 0;
+        }
+    }
+
+//addingEndLine_begin
+
+//addingEndLine_end
+}
+//=====SUPPORTING METHODS===========================================================
+uint32_t MyMaze::myrand()
+{
+    uint32_t ret_val = (std::rand()<<24) | (std::rand()<<12) | std::rand();
+    return ret_val;
 }
 //===========================================================================
