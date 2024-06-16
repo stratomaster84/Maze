@@ -316,8 +316,8 @@ void MyMaze::set_random_maze()
 {
     solution.clear();
     for(int i=0;i<32;++i){
-        right_maze_mask[i]  = myrand();
-        bottom_maze_mask[i] = myrand();
+        right_maze_mask[i]  = (std::rand()<<24) | (std::rand()<<12) | std::rand();
+        bottom_maze_mask[i] = (std::rand()<<24) | (std::rand()<<12) | std::rand();
     }
     if(get_free_neighbours_FN(solution_start.x,solution_start.y) == 0b00'00'00'00)
         solution_start = {-1,-1};
@@ -327,138 +327,6 @@ void MyMaze::set_random_maze()
 //===========================================================================
 void MyMaze::set_ellers_maze()
 {
-    solution.clear();
-    for(int i=0;i<32;++i){
-        right_maze_mask[i]  = 0x00'00'00'00;
-        bottom_maze_mask[i] = 0x00'00'00'00;
-    }
-
-    std::vector<int> CURR_ROW_SETS;
-    int counter_=1;
-
-    fillEmptyValue(CURR_ROW_SETS);
-    for (int j = 0; j < maze_size.y - 1; j++) {
-        assignUniqueSet(CURR_ROW_SETS,counter_);
-        addingVerticalWalls(CURR_ROW_SETS,j);
-        addingHorizontalWalls(CURR_ROW_SETS,j);
-        checkedHorizontalWalls(CURR_ROW_SETS,j);
-        preparatingNewLine(CURR_ROW_SETS,j);
-    }
-    addingEndLine(CURR_ROW_SETS,counter_);
-    clearGenerator(CURR_ROW_SETS,counter_);
-}
-
-bool randomBool() {
-    return std::rand()&0x1;
-}
-
-void MyMaze::clearGenerator(std::vector<int>& sideLine_, int& counter_) {
-    sideLine_.clear();
-    counter_ = 1;
-}
-
-void MyMaze::fillEmptyValue(std::vector<int>& sideLine_) {
-    for (int i = 0; i < maze_size.x; i++) {
-        sideLine_.push_back(0);
-    }
-}
-
-void MyMaze::assignUniqueSet(std::vector<int>& sideLine_, int& counter_) {
-    for (int i = 0; i < maze_size.x; i++) {
-        if (sideLine_[i] == 0) {
-            sideLine_[i] = counter_;
-            counter_++;
-        }
-    }
-}
-
-void MyMaze::mergeSet(std::vector<int>& sideLine_,int index, int element) {
-    int mutableSet = sideLine_[index + 1];
-    for (int j = 0; j < maze_size.x; j++) {
-        if (sideLine_[j] == mutableSet) {
-            sideLine_[j] = element;
-        }
-    }
-}
-
-void MyMaze::addingVerticalWalls(std::vector<int>& sideLine_,int row) {
-    for (int i = 0; i < maze_size.x - 1; i++) {
-        bool choise = randomBool();
-        if (choise == true || sideLine_[i] == sideLine_[i + 1]) {
-            right_maze_mask[row] |= (0x1<<i);
-        } else {
-            mergeSet(sideLine_,i, sideLine_[i]);
-        }
-    }
-    right_maze_mask[row] |= (0x1<<(maze_size.x-1));
-}
-
-int MyMaze::calculateUniqueSet(std::vector<int>& sideLine_, int element) {
-    int countUniqSet = 0;
-    for (int i = 0; i < maze_size.x; i++) {
-        if (sideLine_[i] == element) {
-            countUniqSet++;
-        }
-    }
-    return countUniqSet;
-}
-
-void MyMaze::addingHorizontalWalls(std::vector<int>& sideLine_,int row) {
-    for (int i = 0; i < maze_size.x; i++) {
-        bool choise = randomBool();
-        if (calculateUniqueSet(sideLine_,sideLine_[i]) != 1 && choise == true) {
-            bottom_maze_mask[row] |= (0x1<<i);
-        }
-    }
-}
-
-int MyMaze::calculateHorizontalWalls(std::vector<int>& sideLine_,int element, int row) {
-    int countHorizontalWalls = 0;
-    for (int i = 0; i < maze_size.x; i++) {
-        if (sideLine_[i] == element && (bottom_maze_mask[row] & (0x1<<i)) == false) {
-            countHorizontalWalls++;
-        }
-    }
-    return countHorizontalWalls;
-}
-
-void MyMaze::checkedHorizontalWalls(std::vector<int>& sideLine_,int row) {
-    for (int i = 0; i < maze_size.x; i++) {
-        if (calculateHorizontalWalls(sideLine_,sideLine_[i], row) == 0) {
-            bottom_maze_mask[row] &= ~(uint32_t)(0x1<<i);
-        }
-    }
-}
-
-void MyMaze::preparatingNewLine(std::vector<int>& sideLine_,int row) {
-    for (int i = 0; i < maze_size.x; i++) {
-        if ((bottom_maze_mask[row] & (0x1<<i)) == true) {
-            sideLine_[i] = 0;
-        }
-    }
-}
-
-void MyMaze::checkedEndLine(std::vector<int>& sideLine_) {
-    for (int i = 0; i < maze_size.x - 1; i++) {
-        if (sideLine_[i] != sideLine_[i + 1]) {
-            right_maze_mask[maze_size.y - 1] &= ~(uint32_t)(0x1<<i);
-            mergeSet(sideLine_,i, sideLine_[i]);
-        }
-        bottom_maze_mask[maze_size.y - 1] |= (0x1<<i);
-    }
-    bottom_maze_mask[maze_size.y - 1] |= (0x1<<(maze_size.x - 1));
-}
-
-void MyMaze::addingEndLine(std::vector<int>& sideLine_, int& counter_) {
-    assignUniqueSet(sideLine_,counter_);
-    addingVerticalWalls(sideLine_, maze_size.y - 1);
-    checkedEndLine(sideLine_);
-}
-
-//=====SUPPORTING METHODS===========================================================
-uint32_t MyMaze::myrand()
-{
-    uint32_t ret_val = (std::rand()<<24) | (std::rand()<<12) | std::rand();
-    return ret_val;
+    // Здесь будет генератор лабиринта по алгоритму Эллера
 }
 //===========================================================================
