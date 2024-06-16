@@ -4,7 +4,7 @@
 // конструктор
 MyFrame::MyFrame(QWidget *parent)
     : QFrame(parent),
-      maze(32,32)
+      maze(2,2)
 {
 
 }
@@ -13,12 +13,12 @@ void MyFrame::paintEvent(QPaintEvent *event){
 
     QPainter _painter;
     _painter.begin(this);
-    _painter.fillRect(0,0,width(),height(),QBrush(MAZE_FILL_COLOR));
+    _painter.fillRect(0,0,width(),height(),QBrush(MAZE_FILL_COLOR,Qt::SolidPattern));
     _painter.end();
 
     drawMaze();
 
-    if(maze.have_solution)
+    if(!maze.solution.empty())
         drawSolution();
 
     if(maze.solution_start.x >= 0 && maze.solution_start.y >= 0)
@@ -55,11 +55,54 @@ void MyFrame::drawMaze(){
     }
 }
 void MyFrame::drawSolution(){
+    double _hx = (double)width() /(double)maze.maze_size.x;
+    double _hy = (double)height()/(double)maze.maze_size.y;
 
+    int cur_x = maze.solution_start.x;
+    int cur_y = maze.solution_start.y;
+
+    QPainter _painter(this);
+    _painter.setPen(QPen(SOLUTION_COLOR,SOLUTION_WIDTH,Qt::SolidLine));
+    for(auto &[dir_x,dir_y] : maze.solution){
+        _painter.drawLine(_hx*((double) cur_x          + 0.5),
+                          _hy*((double) cur_y          + 0.5),
+                          _hx*((double)(cur_x + dir_x) + 0.5),
+                          _hy*((double)(cur_y + dir_y) + 0.5));
+        cur_x += dir_x;
+        cur_y += dir_y;
+    }
 }
 void MyFrame::drawStart(){
+    double _hx = (double)width() /(double)maze.maze_size.x;
+    double _hy = (double)height()/(double)maze.maze_size.y;
 
+    double dx = ((double)maze.solution_start.x + 0.5)*_hx;
+    double dy = ((double)maze.solution_start.y + 0.5)*_hy;
+
+    double dh = (_hx<_hy ? _hx : _hy)/4.0;
+
+    QPainter _painter(this);
+    _painter.setPen(QPen(Qt::NoPen));
+    _painter.setBrush(QBrush(START_COLOR,Qt::SolidPattern));
+    _painter.drawEllipse((int)(dx-dh),
+                         (int)(dy-dh),
+                         (int)dh*2,
+                         (int)dh*2);
 }
 void MyFrame::drawStop(){
+    double _hx = (double)width() /(double)maze.maze_size.x;
+    double _hy = (double)height()/(double)maze.maze_size.y;
 
+    double dx = ((double)maze.solution_stop.x + 0.5)*_hx;
+    double dy = ((double)maze.solution_stop.y + 0.5)*_hy;
+
+    double dh = (_hx<_hy ? _hx : _hy)/4.0;
+
+    QPainter _painter(this);
+    _painter.setPen(QPen(Qt::NoPen));
+    _painter.setBrush(QBrush(STOP_COLOR,Qt::SolidPattern));
+    _painter.drawEllipse((int)(dx-dh),
+                         (int)(dy-dh),
+                         (int)dh*2,
+                         (int)dh*2);
 }

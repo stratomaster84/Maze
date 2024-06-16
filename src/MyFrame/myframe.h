@@ -13,7 +13,7 @@
 #define SOLUTION_WIDTH      4
 
 #define START_COLOR         Qt::green
-#define STOP_COLOR          Qt::red
+#define STOP_COLOR          Qt::yellow
 
 class MyFrame : public QFrame
 {

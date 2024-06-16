@@ -18,9 +18,12 @@ public:
 public slots:
     void radio_resolve_but_clicked();
     void radio_maze_but_clicked();
-    void radio_start_stop_but_clicked();
 
     void maze_resized();
+
+    void random_maze();
+
+    void resolve_but();
 
 private:
     Ui::MyUI *ui;
